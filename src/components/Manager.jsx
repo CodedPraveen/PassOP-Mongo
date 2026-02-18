@@ -10,14 +10,17 @@ const Manager = () => {
     const [form, setform] = useState({ site: "", username: "", password: "" })
     const [passwordArray, setPasswordArray] = useState([])
 
+    const getPassword = async () => {
+        let req = await fetch("http://localhost:3000/")
+        let passwords = await req.json()
+        console.log(passwords);
+        setPasswordArray(passwords)
+
+    }
+
+
     useEffect(() => {
-        let passwords = localStorage.getItem("passwords")
-        let passwordArray;
-        if (passwords) {
-            setPasswordArray(JSON.parse(passwords))
-        } else {
-            passwordArray = []
-        }
+        getPassword()
     }, [])
 
     const copyText = (text) => {
@@ -49,7 +52,7 @@ const Manager = () => {
 
     }
 
-    const savePassword = () => {
+    const savePassword = async () => {
         if (form.site.length > 3 && form.username.length > 3 && form.password.length > 3) {
             toast.success('Password saved!', {
 
@@ -62,8 +65,12 @@ const Manager = () => {
                 progress: undefined,
                 theme: "dark",
             });
-            setPasswordArray([...passwordArray, { ...form, id: uuidv4() }])
-            localStorage.setItem("passwords", JSON.stringify([...passwordArray, { ...form, id: uuidv4() }]))
+            // IF any such id exits in the db, delete it
+            await fetch("http://localhost:3000/", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: form.id }) })
+            setPasswordArray([...passwordArray, { id: form.id }])
+            await fetch("http://localhost:3000/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, id: uuidv4() }) })
+            // localStorage.setItem("passwords", JSON.stringify([...passwordArray, { ...form, id: uuidv4() }]))
+            // console.log([...passwordArray, form]);
             setform({ site: "", username: "", password: "" })
         } else {
             toast.warn('All field require to fill!', {
@@ -78,9 +85,8 @@ const Manager = () => {
                 theme: "dark",
             });
         }
-        // console.log([...passwordArray, form]);
     }
-    const deletePassword = (id) => {
+    const deletePassword = async (id) => {
         toast.warn('delete Password!', {
             position: "top-right",
             autoClose: 5000,
@@ -97,26 +103,28 @@ const Manager = () => {
 
         // }
         setPasswordArray([...passwordArray.filter(item => item.id !== id)])
-        localStorage.setItem("passwords", JSON.stringify([...passwordArray.filter(item => item.id !== id)]))
+
+        let res = await fetch("http://localhost:3000/", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) })
+        // localStorage.setItem("passwords", JSON.stringify([...passwordArray.filter(item => item.id !== id)]))
         // console.log([...passwordArray, form]);
     }
     const editPassword = (id) => {
-        if (form.site.trim() !== "" && form.username.trim() !== "" && form.password.trim() !== "") {
-            console.log("editing passwords and this is id", id);
-            setform(passwordArray.filter(i => i.id === id)[0])
-            setPasswordArray([...passwordArray.filter(item => item.id !== id)])
-        } else {
-            toast.info('Fields contain values!', {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: false,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "dark",
-            });
-        }
+        // if (form.site.trim() !== "" && form.username.trim() !== "" && form.password.trim() !== "") {
+        console.log("editing passwords and this is id", id);
+        setform({ ...passwordArray.filter(i => i.id === id)[0], id: id })
+        setPasswordArray([...passwordArray.filter(item => item.id !== id)])
+        // } else {
+        // toast.info('Fields contain values!', {
+        //     position: "top-right",
+        //     autoClose: 5000,
+        //     hideProgressBar: false,
+        //     closeOnClick: false,
+        //     pauseOnHover: true,
+        //     draggable: true,
+        //     progress: undefined,
+        //     theme: "dark",
+        // });
+        // }
         // localStorage.setItem("passwords", JSON.stringify([...passwordArray, { ...form, id: uuidv4() }]))
         // console.log([...passwordArray, form]);
     }
@@ -143,7 +151,7 @@ const Manager = () => {
                 transition="flip"
             />
             <ToastContainer />
-           
+
             <div className="p-2 md:p-3 md:mycontainer ">
                 <h1 className='text-4xl text-center font-bold'>
                     <span className='text-green-500 '> &lt; </span>
