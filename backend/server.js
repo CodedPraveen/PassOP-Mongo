@@ -11,7 +11,7 @@ const url = 'mongodb://localhost:27017';
 const client = new MongoClient(url);
 
 // Database Name
-const dbName = 'PassOP-mongo';
+const dbName = 'passop';
 const app = express()
 const port = 3000
 app.use(bodyparser.json())
