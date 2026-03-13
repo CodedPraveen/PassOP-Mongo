@@ -3,11 +3,13 @@ const { MongoClient } = require('mongodb');
 const dotenv = require('dotenv')
 const bodyparser = require('body-parser')
 var cors = require('cors')
+const dns = require('dns')
 
 dotenv.config()
+dns.setServers(['8.8.8.8', '8.8.4.4'])
 
 // Connection URL
-const url = 'mongodb://localhost:27017';
+const url = process.env.MONGO_URI;
 const client = new MongoClient(url);
 
 // Database Name
