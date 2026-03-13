@@ -4,9 +4,14 @@ const dotenv = require('dotenv')
 const bodyparser = require('body-parser')
 var cors = require('cors')
 const dns = require('dns')
+const mongoose = require('mongoose')
 
 dotenv.config()
 dns.setServers(['8.8.8.8', '8.8.4.4'])
+
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("Mongo connected"))
+    .catch(err => console.log(err))
 
 // Connection URL
 const url = process.env.MONGO_URI;
@@ -15,7 +20,7 @@ const client = new MongoClient(url);
 // Database Name
 const dbName = 'passop';
 const app = express()
-const port = 3000
+const port = process.env.PORT || 3000
 app.use(bodyparser.json())
 app.use(cors())
 
@@ -44,8 +49,8 @@ app.delete('/', async (req, res) => {
     const db = client.db(dbName);
     const collection = db.collection('passwords');
     const findResult = await collection.deleteOne(password);
-    
-    res.send({ success: true , result: findResult})
+
+    res.send({ success: true, result: findResult })
 })
 
 
