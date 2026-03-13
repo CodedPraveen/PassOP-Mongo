@@ -1,6 +1,6 @@
 import React from 'react'
 import { useRef, useState, useEffect } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer, toast, Bounce } from 'react-toastify';
 import { v4 as uuidv4 } from 'uuid';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -13,7 +13,6 @@ const Manager = () => {
     const getPasswords = async () => {
         let req = await fetch(`${import.meta.env.VITE_API_URL}/`)
         let passwords = await req.json()
-        console.log(passwords);
         setPasswordArray(passwords)
     }
 
@@ -39,7 +38,6 @@ const Manager = () => {
 
     const showPassword = () => {
         passwordRef.current.type = "text"
-        console.log(ref.current.src)
         if (ref.current.src.includes("icons/eyecross.png")) {
             ref.current.src = "icons/eye.png"
             passwordRef.current.type = "password"
@@ -55,11 +53,18 @@ const Manager = () => {
         if (form.site.length > 3 && form.username.length > 3 && form.password.length > 3) {
 
             // If any such id exists in the db, delete it 
-            await fetch(`${import.meta.env.VITE_API_URL}/`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: form.id }) })
+            if (form.id) {
+                await fetch(`${import.meta.env.VITE_API_URL}/`, {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: form.id })
+                })
+            }
+            const newId = uuidv4()
 
+            setPasswordArray([...passwordArray, { ...form, id: newId }])
 
-            setPasswordArray([...passwordArray, { ...form, id: uuidv4() }])
-            await fetch(`${import.meta.env.VITE_API_URL}/`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, id: uuidv4() }) })
+            await fetch(`${import.meta.env.VITE_API_URL}/`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, id: newId }) })
 
             // Otherwise clear the form and show toast
             setform({ site: "", username: "", password: "" })
@@ -67,11 +72,12 @@ const Manager = () => {
                 position: "top-right",
                 autoClose: 5000,
                 hideProgressBar: false,
-                closeOnClick: true,
+                closeOnClick: false,
                 pauseOnHover: true,
                 draggable: true,
                 progress: undefined,
-                theme: "dark",
+                theme: "light",
+                transition: Bounce,
             });
         }
         else {
@@ -81,7 +87,6 @@ const Manager = () => {
     }
 
     const deletePassword = async (id) => {
-        console.log("Deleting password with id ", id)
         let c = confirm("Do you really want to delete this password?")
         if (c) {
             setPasswordArray(passwordArray.filter(item => item.id !== id))
@@ -92,10 +97,12 @@ const Manager = () => {
                 position: "top-right",
                 autoClose: 5000,
                 hideProgressBar: false,
-                closeOnClick: true,
+                closeOnClick: false,
+                pauseOnHover: true,
                 draggable: true,
                 progress: undefined,
-                theme: "dark",
+                theme: "light",
+                transition: Bounce,
             });
         }
 
@@ -127,7 +134,6 @@ const Manager = () => {
                 theme="dark"
                 transition="flip"
             />
-            <ToastContainer />
 
             <div className="p-2 md:p-3 md:mycontainer ">
                 <h1 className='text-4xl text-center font-bold'>
